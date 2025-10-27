@@ -1,51 +1,31 @@
-name: CI
+name: Build Mod
 
 on:
   push:
-    branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
-
-permissions:
-  contents: read
+    branches: [ "main" ]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v4
-    
-    - name: Set up JDK 22
+
+    - name: Set up JDK
       uses: actions/setup-java@v4
       with:
-        java-version: '22'
+        java-version: '17'
         distribution: 'temurin'
-    
-    - name: Create Gradle Wrapper if missing
-      run: |
-        if [ ! -f "./gradlew" ] || [ ! -f "./gradle/wrapper/gradle-wrapper.jar" ]; then
-          echo "Creating Gradle Wrapper..."
-          gradle wrapper --gradle-version 8.5 --distribution-type bin
-          chmod +x gradlew
-        fi
-    
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        validate-wrappers: false
-    
-    - name: Run tests
-      run: ./gradlew test
-    
-    - name: Build JAR
-      run: ./gradlew clean build jar
 
-    - name: Upload JAR artifact
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+
+    - name: Build with Gradle
+      run: ./gradlew build
+
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: unzipper
-        path: build/libs/unzipper-*.jar
-        retention-days: 30
+        name: mod-build
+        path: build/libs/
